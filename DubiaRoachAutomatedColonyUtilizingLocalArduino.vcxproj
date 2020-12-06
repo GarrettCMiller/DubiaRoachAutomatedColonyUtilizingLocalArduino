@@ -73,7 +73,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\DubiaRoachAutomatedColonyUtilizingLocalArduino;$(ProjectDir)..\libraries\GCMArduino;$(ProjectDir)..\libraries\U8glib;$(ProjectDir)..\libraries\PlainProtocol;c:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\Wire\src;$(ProjectDir)..\libraries\Adafruit_Fingerprint_Sensor_Library;c:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\SoftwareSerial\src;$(ProjectDir)..\libraries\RGB_matrix_Panel;$(ProjectDir)..\libraries\Adafruit_GFX_Library;c:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\SPI\src;$(ProjectDir)..\libraries\U8glib\utility;c:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\Wire\src\utility;c:\Program Files (x86)\Arduino\hardware\arduino\avr\cores\arduino;c:\Program Files (x86)\Arduino\hardware\arduino\avr\variants\mega;c:\Program Files (x86)\Arduino\hardware\tools\avr\\lib\gcc\avr\7.3.0\include;c:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include;c:\Program Files (x86)\Arduino\hardware\tools\avr\\lib\gcc\avr\7.3.0\include;c:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include-fixed;c:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr;c:\Program Files (x86)\Arduino\hardware\tools\avr\lib\gcc\avr\4.9.2\include;c:\Program Files (x86)\Arduino\hardware\tools\avr\lib\gcc\avr\4.9.2\include;c:\Program Files (x86)\Arduino\hardware\tools\avr\lib\gcc\avr\4.9.3\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\DubiaRoachAutomatedColonyUtilizingLocalArduino;$(ProjectDir)..\libraries\GCMArduino;$(ProjectDir)..\libraries\U8glib;$(ProjectDir)..\libraries\PlainProtocol;c:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\Wire\src;$(ProjectDir)..\libraries\Adafruit_Fingerprint_Sensor_Library;c:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\SoftwareSerial\src;$(ProjectDir)..\libraries\RGB_matrix_Panel;$(ProjectDir)..\libraries\Adafruit_GFX_Library;c:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\SPI\src;c:\Program Files (x86)\Arduino\hardware\arduino\avr\cores\arduino;c:\Program Files (x86)\Arduino\hardware\arduino\avr\variants\mega;c:\Program Files (x86)\Arduino\hardware\tools\avr\\lib\gcc\avr\7.3.0\include;c:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include;c:\Program Files (x86)\Arduino\hardware\tools\avr\\lib\gcc\avr\7.3.0\include;c:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include-fixed;c:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr;c:\Program Files (x86)\Arduino\hardware\tools\avr\lib\gcc\avr\4.9.2\include;c:\Program Files (x86)\Arduino\hardware\tools\avr\lib\gcc\avr\4.9.2\include;c:\Program Files (x86)\Arduino\hardware\tools\avr\lib\gcc\avr\4.9.3\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>$(ProjectDir)__vm\.DubiaRoachAutomatedColonyUtilizingLocalArduino.vsarduino.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
       <PreprocessorDefinitions>__AVR_atmega1280__;__AVR_ATmega1280__;F_CPU=16000000L;ARDUINO=108012;ARDUINO_AVR_MEGA;ARDUINO_ARCH_AVR;__cplusplus=201103L;_VMICRO_INTELLISENSE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
@@ -88,10 +88,10 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\DubiaRoachAutomatedColonyUtilizingLocalArduino;D:\Arduino\libraries\GCMArduino;D:\Arduino\libraries\U8glib;D:\Arduino\libraries\PlainProtocol;$(ProjectDir)..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\Wire\src;D:\Arduino\libraries\Adafruit_Fingerprint_Sensor_Library;$(ProjectDir)..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\SoftwareSerial\src;D:\Arduino\libraries\RGB_matrix_Panel;D:\Arduino\libraries\Adafruit_GFX_Library;$(ProjectDir)..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\SPI\src;$(ProjectDir)..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\arduino\avr\cores\arduino;$(ProjectDir)..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\arduino\avr\variants\mega;$(ProjectDir)..\..\GARRET~1\DUBIAR~1;$(ProjectDir)..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\tools\avr\\lib\gcc\avr\7.3.0\include;$(ProjectDir)..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\tools\avr\avr\include;$(ProjectDir)..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\tools\avr\\lib\gcc\avr\7.3.0\include;$(ProjectDir)..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\tools\avr\avr\include-fixed;$(ProjectDir)..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr;$(ProjectDir)..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\tools\avr\lib\gcc\avr\4.9.2\include;$(ProjectDir)..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\tools\avr\lib\gcc\avr\4.9.2\include;$(ProjectDir)..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\tools\avr\lib\gcc\avr\4.9.3\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <ForcedIncludeFiles>$(ProjectDir)__vm\.DubiaRoachAutomatedColonyUtilizingLocalArduino.vsarduino.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ForcedIncludeFiles>%(ForcedIncludeFiles)</ForcedIncludeFiles>
       <IgnoreStandardIncludePath>true</IgnoreStandardIncludePath>
-      <PreprocessorDefinitions>__AVR_atmega1280__;__AVR_ATmega1280__;_VMDEBUG=1;F_CPU=16000000L;ARDUINO=108012;ARDUINO_AVR_MEGA;ARDUINO_ARCH_AVR;__cplusplus=201103L;_VMICRO_INTELLISENSE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -116,7 +116,7 @@
   </ImportGroup>
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties arduino.upload.port="COM12" config.Debug.customdebug_mega_atmega1280_debugger_type="universal" />
+      <UserProperties arduino.upload.port="COM12" />
     </VisualStudio>
   </ProjectExtensions>
 </Project>

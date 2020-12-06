@@ -9,14 +9,27 @@
 #include "BlunoShield.h"
 #include "OLEDMenu.h"
 
+//A simple swap macro, I may replace with a typesafe templated function instead...
 #define Swap(_T, a, b)		{ _T t; t = a; a = b; b = t; }
+
+#pragma region Local Derived Classes (The PC fans and the fogger)
 
 /// <summary>
 /// A class that represents a standard PC-case fan, possibly hooked to a PWM port,
-/// derived from a SwitchDevice that can be turned on/off
+/// derived from a SwitchDevice that can be turned on/off (and if PWM-enabled, PWM-ed)
 /// </summary>
 class PCFan : public SwitchDevice
 {
+private:
+	PCFan(PCFan&& ctrArg)
+	{
+		Serial.println("Shouldn't be here...");
+	}
+
+	PCFan(const PCFan& ctrArg)
+	{
+		Serial.println("Also shouldn't be here...");
+	}
 public:
 	PCFan(uint8_t pin, const char* fanName)
 		: SwitchDevice(pin, fanName)
@@ -73,7 +86,7 @@ public:
 		//any special code for the fogger can be inserted here
 	}
 
-	//via IInputCommandListener
+	//via IInputCommandListener, listen for: "<Fogger>[On/Off];"
 	virtual void ProcessInput(PlainProtocol& input)
 	{
 		if (input == F("Fogger"))
@@ -88,6 +101,8 @@ public:
 	}
 };
 
+#pragma endregion
+
 #pragma region Global Variables
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -97,19 +112,19 @@ public:
 // Minimum (non-crippling) survivable temperature: 40-ish deg F?
 // Minimum "comfortable (?)" temperature: 60 deg F
 //											name			inital		min			max
-RangedValue8 tempMin = RangedValue8(		"Temp Min",		90,			60,			95);	//deg F
-RangedValue8 tempMax = RangedValue8(		"Temp Max",		95,			70,			110);	//deg F
+RangedValue8 tempMin = RangedValue8("Temp Min", 90, 60, 95);	//deg F
+RangedValue8 tempMax = RangedValue8("Temp Max", 95, 70, 110);	//deg F
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Ideal breeding, thriving humidity range: 40-60%
 // Minimum (non-crippling) survivable humidity: 20-30% ??
-RangedValue8 humMin = RangedValue8(			"Hum Min",		40,			30,			60);	//%
-RangedValue8 humMax = RangedValue8(			"Hum Max",		60,			40,			70);	//%
+RangedValue8 humMin = RangedValue8("Hum Min", 40, 30, 60);	//%
+RangedValue8 humMax = RangedValue8("Hum Max", 60, 40, 70);	//%
 
 //The intake fan
-PCFan fanIntake(24,		"Intake Fan");
+PCFan fanIntake(24, "Intake Fan");
 //The exhaust fan
-PCFan fanExhaust(25,	"Exhaust Fan");
+PCFan fanExhaust(25, "Exhaust Fan");
 
 //The fogger
 Fogger fogger(22);
@@ -118,27 +133,35 @@ Fogger fogger(22);
 
 #pragma region Menu System
 
+///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// The menu options on the "Ranges" page that allows adjustment of min/max temperature and humidity
 MenuOption rangesPageOptions[] =
 {
-	MenuOption("Temp Min", tempMin),
-	MenuOption("Temp Max", tempMax),
-	MenuOption("Hum Min", humMin),
-	MenuOption("Hum Max", humMax),
+	MenuOption("Temp Min",	tempMin),	//The name to display on-screen and then a reference to the variable to change, in this case, the RangedValue8 defined above called tempMin
+	MenuOption("Temp Max",	tempMax),
+	MenuOption("Hum Min",	humMin),
+	MenuOption("Hum Max",	humMax),
 };
 
+//The menu page for the min/max temp and humidity options
 OLEDPage rangesPage("Range Settings", MenuOptionCount(rangesPageOptions), rangesPageOptions);
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
+// The main menu page options
 MenuOption mainPageOptions[] =
 {
-	MenuOption("Set Ranges", &rangesPage),
-	MenuOption("Shield Settings", &mainSettingsPage)
+	MenuOption("Set Ranges",		&rangesPage),		//The name to display on-screen as the selectable choice, and then a pointer to the OLEDPage this links to when selected
+	MenuOption("Shield Settings",	&mainSettingsPage)
 };
 
+// The main menu page that is activated when the user
+// presses the joystick and "exits" the default screen mode.
 OLEDPage mainPage("Main Menu", MenuOptionCount(mainPageOptions), mainPageOptions);
 
 //////////////////////////////////////////////////////////////////////////////
+// The whole "singular" menu system for this sketch. THERE SHOULD ONLY EVER BE ONE PER SKETCH
 OLEDMenu menu(mainPage, blunoShield.GetOLED());
 
 #pragma endregion
@@ -146,9 +169,9 @@ OLEDMenu menu(mainPage, blunoShield.GetOLED());
 #pragma region Callbacks
 
 /// <summary>
-/// The callback function for the bluno shield OLED screen to draw what you want
+/// The callback function for the Bluno shield OLED screen to draw what you want (the menu system)
 /// </summary>
-/// <param name="oled">A reference to the bluno shield OLED screen</param>
+/// <param name="oled">A reference to the Bluno shield OLED screen</param>
 void drawCallback(OLED& oled)
 {
 	//Just in case the menu system's pointer to the OLED is NULL, set it
@@ -159,7 +182,7 @@ void drawCallback(OLED& oled)
 }
 
 /// <summary>
-/// The callback function for the bluno shield PlainProtocol (technically not the shield but an actual bluno-board)
+/// The callback function for the bluno shield PlainProtocol (technically not the shield but an actual DFRobot Bluno-board)
 /// </summary>
 /// <param name="input">The PlainProtocol object (reference)</param>
 void processInputCallback(PlainProtocol& input)
@@ -206,23 +229,23 @@ void ProcessTemperature()
 	}
 	else //otherwise, if it's hotter than the maximum temperature
 		if (blunoShield.temperature > tempMax)
-	{
-		//Set the heater relay off, if it's on
-		if (blunoShield.GetRelay().IsOn())
-			blunoShield.GetRelay().SetOn(false);
+		{
+			//Set the heater relay off, if it's on
+			if (blunoShield.GetRelay().IsOn())
+				blunoShield.GetRelay().SetOn(false);
 
-		//Set the LED back to the "blink" mode, if it isn't already
-		if (led.eLEDState != LED_RGB::eLS_OnBlink)
-			led.eLEDState = LED_RGB::eLS_OnBlink;
+			//Set the LED back to the "blink" mode, if it isn't already
+			if (led.eLEDState != LED_RGB::eLS_OnBlink)
+				led.eLEDState = LED_RGB::eLS_OnBlink;
 
-		//Set the LED color back to green, if it isn't already
-		if (!led.colorEquals(0, 255, 0))
-			led.setColor(0, 255, 0);
+			//Set the LED color back to green, if it isn't already
+			if (!led.colorEquals(0, 255, 0))
+				led.setColor(0, 255, 0);
 
-		//Set the LED brightness back to the default (minimum visible) brightness, if it isn't already
-		if (led.GetBrightness() != 1)
-			blunoShield.GetLED().SetBrightness(1);
-	}
+			//Set the LED brightness back to the default (minimum visible) brightness, if it isn't already
+			if (led.GetBrightness() != 1)
+				blunoShield.GetLED().SetBrightness(1);
+		}
 }
 
 /// <summary>
@@ -245,17 +268,17 @@ void ProcessHumidity()
 	}
 	else //otherwise, if it's wetter and more humid than the max humidity
 		if (blunoShield.humidity > humMax)
-	{
-		//Turn the fogger off, if it isn't already
-		if (fogger.IsOn())
-			fogger.SetOn(false);
+		{
+			//Turn the fogger off, if it isn't already
+			if (fogger.IsOn())
+				fogger.SetOn(false);
 
-		//Turn the fans on, if they aren't already, to move as much moisture as possible
-		if (!fanExhaust.IsOn())
-			fanExhaust.SetOn();
-		if (!fanIntake.IsOn())
-			fanIntake.SetOn();
-	}
+			//Turn the fans on, if they aren't already, to move as much moisture as possible
+			if (!fanExhaust.IsOn())
+				fanExhaust.SetOn();
+			if (!fanIntake.IsOn())
+				fanIntake.SetOn();
+		}
 }
 
 /// <summary>
@@ -287,7 +310,7 @@ void SetBlunoMessageText()
 /// </summary>
 void UpdateMenuSystem()
 {
-	//if the Bluno Accessory Shield screen draw mode is set to custom, indicating WE tell it what to draw,
+	//if the Bluno Accessory Shield screen draw mode is set to custom, indicating WE (end-user, here, in the main Arduino sketch) tell it what to draw,
 	//update the menu system (which essentially handles input and drawing the appropriate page).
 	if (blunoShield.GetDrawMode() == BlunoShield::eDM_Custom)
 		menu.Update();
