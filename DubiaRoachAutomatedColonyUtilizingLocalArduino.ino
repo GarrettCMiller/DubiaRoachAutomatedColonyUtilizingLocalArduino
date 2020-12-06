@@ -2,10 +2,16 @@
 	Name:       DubiaRoachAutomatedColonyUtilizingLocalArduino.ino (D.R.A.C.U.L.A.)
 	Created:	11/9/2020 12:19:12 AM
 	Author:     Garrett Miller
+	Notes:		This code heavily uses Editor Outlining as used in Visual Studio, with
+				frequent use of #pragma region (Region Label/Name)\n ... \n ... \n #pragma endregion
+				to collapse regions of code and comments into logical groupings.
+				For those unfamiliar, Ctrl+M, Ctrl+L toggles all outlining open/closed
+				while Ctrl+M, Ctrl+O collapses all outlining to closed. Handy for seeing related
+				groups of code and temporarily "hiding" other code.
 */
 
-#include "BlunoOLED.h"
-#include "Arduino.h"
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// Includes
 #include "BlunoShield.h"
 #include "OLEDMenu.h"
 
@@ -21,55 +27,82 @@
 class PCFan : public SwitchDevice
 {
 private:
-	PCFan(PCFan&& ctrArg)
-	{
-		Serial.println("Shouldn't be here...");
-	}
-
-	PCFan(const PCFan& ctrArg)
-	{
-		Serial.println("Also shouldn't be here...");
-	}
+	PCFan();						//private default ctor, not acceptable outside this class
+	PCFan(PCFan&& ctrArg);			//private move ctor, not acceptable outside this class
+	PCFan(const PCFan& ctrArg);		//private copy ctor, not acceptable outside this class
 public:
-	PCFan(uint8_t pin, const char* fanName)
-		: SwitchDevice(pin, fanName)
+	/// <summary>
+	/// The only proper way to create a fan device, according to this project's usage
+	/// </summary>
+	/// <param name="pin">The pin number this fan's control wire is linked to</param>
+	/// <param name="fanName">The name of this particular fan (for menu use and input processing)</param>
+	/// <param name="timerLength">The time that the fan will run before shutting off. Can always be changed later.</param>
+	/// <remarks>
+	/// Only allowable constructor to ensure proper initialization
+	/// </remarks>
+	PCFan(uint8_t pin, const char* fanName, unsigned long timerLength = 5 TMINUTES)
+		: SwitchDevice(pin, fanName, timerLength) //Ensure we call the base class ctor
 	{
-		//any special code for a fan can be inserted here
+		//any additional special code for a fan can be inserted here
 	}
 
-	//via IInputCommandListener
+	//via SwitchDevice
+	virtual uint8_t Initialize()
+	{
+		//Any pre-base-class-initialization code here
+
+		//Base-class initialization, sets pinMode to OUTPUT and then either digitalWrite's or analogWrite's
+		//the default state (off) to the pin
+		uint8_t retCode = SwitchDevice::Initialize();
+
+		//Any post-base-class-initialization here
+
+		return retCode;
+	}
+
+	/// <summary>
+	/// Process any input received via PlainProtocol
+	/// </summary>
+	/// <param name="input">A reference to the PlainProtocol object representing the input (and possible output)</param>
+	/// <remarks>
+	/// Derived from (and required by) IInputCommandListener
+	/// </remarks>
 	virtual void ProcessInput(PlainProtocol& input)
 	{
 		//Serial.println("HEREpp");
 		if (input == F("Fan"))
 		{
-			//String firstArg = input.readString();
+			String firstArg = input.readString();
 
-			//if (firstArg == F("?"))
-			//{
-			//	input.write(name);
-			//}
-			//else
-			//{
-				//if (firstArg == name) //if the first argument is exactly the name of this fan
+			if (firstArg == F("?")) //if the command is <Fan>?; output the fan's name -- each fan SHOULD listen to this command meaning all names SHOULD be printed
 			{
-				Serial.println("Adjusting fan...");
-
-				String targetState = input.readString();
-
-				if (targetState == F("On"))
-					SetOn();
-				else if (targetState == F("Off"))
-					SetOn(false);
-				else
+				input.write(GetName());
+			}
+			else //otherwise, let's see if the first argument names this fan
+			{
+				if (firstArg == GetName()) //if the first argument is exactly the name of this fan
 				{
-					String output = F("*** INVALID ARGUMENT: Fan state = \"");
-					output = output + targetState;
-					output = output + F("\"");
-					input.write(output);
+					Serial.println("Adjusting fan...");
+
+					String targetState = input.readString();
+					
+					//set the string to all lowercase to easily respond to all forms of "On"/"Off"/"on"/"off"/"oN"/"ofF"/"oFf"/"oFF"
+					//and because, for real, case should RARELY EVER matter *hard eye-roll*
+					targetState.toLowerCase();
+
+					if (targetState == F("on"))				// <Fan>[this fan name];on;
+						TurnOn();
+					else if (targetState == F("off"))		// <Fan>[this fan name];off;
+						TurnOn(false);
+					else //otherwise we don't accept whatever this string is that isn't "On" or "Off"
+					{
+						String output = F("*** INVALID ARGUMENT: Fan state = \"");
+						output = output + targetState;	//print invalid command
+						output = output + F("\"");
+						input.write(output);
+					}
 				}
 			}
-			//}
 		}
 	}
 };
@@ -77,16 +110,41 @@ public:
 /// <summary>
 /// A class that represents a relay attached to the board that controls a fogger/humidifier
 /// </summary>
+/// <inheritdoc/>
 class Fogger : public SwitchDevice
 {
+private:
+	Fogger();						//private default ctor, not acceptable outside this class
+	Fogger(Fogger&& ctrArg);		//private move ctor, not acceptable outside this class
+	Fogger(const Fogger& ctrArg);	//private copy ctor, not acceptable outside this class
 public:
+	/// <summary>
+	/// Create a fogger device
+	/// </summary>
+	/// <param name="pin">The pin number the fogger relay control wire is linked to</param>
+	/// <param name="foggerName">The name of the fogger (for menu use and input processing)</param>
+	/// <param name="maxRunTime">The maximum time the fogger will be allowed to run before being shut off for a while</param>
+	/// <remarks>
+	/// Only allowable constructor to ensure proper initialization
+	/// </remarks>
 	Fogger(uint8_t pin, const char* foggerName = "Fogger", unsigned long maxRunTime = 60 TMINUTES)
-		: SwitchDevice(pin, foggerName, maxRunTime)
+		: SwitchDevice(pin, foggerName, maxRunTime)	//don't forget the base class ctor
 	{
 		//any special code for the fogger can be inserted here
 	}
 
-	//via IInputCommandListener, listen for: "<Fogger>[On/Off];"
+	virtual uint8_t Initialize()
+	{
+		return SwitchDevice::Initialize();
+	}
+
+	/// <summary>
+	/// Process any input received via PlainProtocol
+	/// </summary>
+	/// <param name="input">A reference to the PlainProtocol object representing the input (and possible output)</param>
+	/// <remarks>
+	/// Derived from (and required by) IInputCommandListener
+	/// </remarks>
 	virtual void ProcessInput(PlainProtocol& input)
 	{
 		if (input == F("Fogger"))
@@ -94,9 +152,9 @@ public:
 			String arg = input.readString();
 
 			if (arg == F("On"))
-				SetOn();
+				TurnOn();
 			else if (arg == F("Off"))
-				SetOn(false);
+				TurnOn(false);
 		}
 	}
 };
@@ -168,8 +226,12 @@ OLEDMenu menu(mainPage, blunoShield.GetOLED());
 
 #pragma region Callbacks
 
+///////////////////////////////////////////////////////////////////////////////////////////////////
 /// <summary>
-/// The callback function for the Bluno shield OLED screen to draw what you want (the menu system)
+/// The callback function for the Bluno shield OLED screen to draw what you want (the menu system).
+/// This is necessary because drawing to the OLED can only be done at a very specific point in the
+/// code, namely the oled.firstPage()/oled.nextPage() loop found in BlunoShield::UpdateOLED(), that
+/// is called only ONCE PER LOOP()
 /// </summary>
 /// <param name="oled">A reference to the Bluno shield OLED screen</param>
 void drawCallback(OLED& oled)
@@ -181,6 +243,7 @@ void drawCallback(OLED& oled)
 	menu.Draw();
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////
 /// <summary>
 /// The callback function for the bluno shield PlainProtocol (technically not the shield but an actual DFRobot Bluno-board)
 /// </summary>
@@ -213,7 +276,7 @@ void ProcessTemperature()
 	{
 		//Turn the heater relay on if it isn't already
 		if (!blunoShield.GetRelay().IsOn())
-			blunoShield.GetRelay().SetOn();
+			blunoShield.GetRelay().TurnOn();
 
 		//Set the LED to the "solid color" mode, if it isn't already
 		if (led.eLEDState != LED_RGB::eLS_OnSolid)
@@ -232,7 +295,7 @@ void ProcessTemperature()
 		{
 			//Set the heater relay off, if it's on
 			if (blunoShield.GetRelay().IsOn())
-				blunoShield.GetRelay().SetOn(false);
+				blunoShield.GetRelay().TurnOn(false);
 
 			//Set the LED back to the "blink" mode, if it isn't already
 			if (led.eLEDState != LED_RGB::eLS_OnBlink)
@@ -258,26 +321,26 @@ void ProcessHumidity()
 	{
 		//Turn the fogger on, if it isn't already
 		if (!fogger.IsOn())
-			fogger.SetOn();
+			fogger.TurnOn();
 
 		//Turn the fans off, keeping as much moisture as possible
 		if (fanExhaust.IsOn())
-			fanExhaust.SetOn(false);
+			fanExhaust.TurnOn(false);
 		if (fanIntake.IsOn())
-			fanIntake.SetOn(false);
+			fanIntake.TurnOn(false);
 	}
 	else //otherwise, if it's wetter and more humid than the max humidity
 		if (blunoShield.humidity > humMax)
 		{
 			//Turn the fogger off, if it isn't already
 			if (fogger.IsOn())
-				fogger.SetOn(false);
+				fogger.TurnOn(false);
 
 			//Turn the fans on, if they aren't already, to move as much moisture as possible
 			if (!fanExhaust.IsOn())
-				fanExhaust.SetOn();
+				fanExhaust.TurnOn();
 			if (!fanIntake.IsOn())
-				fanIntake.SetOn();
+				fanIntake.TurnOn();
 		}
 }
 
@@ -366,8 +429,8 @@ void setup()
 	blunoShield.Init();
 
 	//Set Bluno shield callbacks for drawing and input
-	blunoShield.currentDrawCallback = drawCallback;
-	blunoShield.currentInputCallback = processInputCallback;
+	blunoShield.SetDrawCallback(drawCallback);
+	blunoShield.SetInputCallback(processInputCallback);
 
 	//Set the Bluno shield to do internal (default) PlainProtocol processing, but also our external, callback function too (processInputCallback(PlainProtocol& input))
 	blunoShield.SetInputProcessingMode(BlunoShield::eIPM_Both);
@@ -389,11 +452,11 @@ void setup()
 	blunoShield.GetRelay().SetTimerPeriod(2 THOURS);
 
 	//Initialize fogger
-	fogger.Init();
+	fogger.Initialize();
 
 	//Initialize both fans
-	fanIntake.Init();
-	fanExhaust.Init();
+	fanIntake.Initialize();
+	fanExhaust.Initialize();
 }
 
 void loop()
